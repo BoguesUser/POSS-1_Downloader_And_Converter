@@ -7,7 +7,7 @@ use image::{GrayImage, Luma};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let base_output_dir = "poss_1_temp";
+    let base_output_dir = "poss_1";
     let red_output_dir = format!("{}/red", base_output_dir);
     let blue_output_dir = format!("{}/blue", base_output_dir);
     std::fs::create_dir_all(&red_output_dir)?;
