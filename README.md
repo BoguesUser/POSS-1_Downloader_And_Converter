@@ -8,10 +8,11 @@ Additionally, this is not fast. Caltech may even block me at some point since I'
 
 # Code Function
 
-This scrapes the images of the plates available from Caltech and converts them to a normalized, 8 bit png file. There is a bit of dataloss doing that but it makes the file SIGNIFICANTLY smaller. Worth it for what I plan to do.
+This scrapes the images of the plates available from Caltech and converts them to a normalized, 8 bit png file. I am using cropping about 1% of value off the top and bottom for more robust scaling. 
 
-This does save portions of the fits header file but not everything. Just the stuff I needed.
-Add keys to line 77 if you need a specific header value saved.
+There is a bit of dataloss doing all this but it makes the file SIGNIFICANTLY smaller. Worth it for what I plan to do.
+
+This also does save portions of the fits header file but not everything. Just the stuff I needed. Add keys to line 77 if you need a specific header value saved.
 
 ## Project Structure
 

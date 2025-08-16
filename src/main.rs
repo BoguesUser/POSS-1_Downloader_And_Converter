@@ -7,7 +7,7 @@ use image::{GrayImage, Luma};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let base_output_dir = "poss_1";
+    let base_output_dir = "poss_1_temp";
     let red_output_dir = format!("{}/red", base_output_dir);
     let blue_output_dir = format!("{}/blue", base_output_dir);
     std::fs::create_dir_all(&red_output_dir)?;
@@ -33,6 +33,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
             Err(e) => eprintln!("Error downloading red image {}: {}", image_id, e),
         }
+        println!("------------");
     }
 
     // --- Download and Process Blue Images ---
@@ -54,6 +55,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
             Err(e) => eprintln!("Error downloading blue image {}: {}", image_id, e),
         }
+        println!("------------");
     }
 
     Ok(())
@@ -98,8 +100,13 @@ fn process_fits_file(fits_path: &str, output_dir: &str) -> Result<(), Box<dyn st
     let HeaderValue { value, .. } = img_y;
     let height = value.parse::<u32>()?;
 
-    let min_value = *image_data.iter().min().unwrap_or(&0);
-    let max_value = *image_data.iter().max().unwrap_or(&0);
+    // Sort the data to calculate percentiles
+    let mut sorted_data = image_data.clone();
+    sorted_data.par_sort_unstable();
+
+    // Calculate 1st and 99th percentile values
+    let min_value = percentile(&sorted_data, 1.0);
+    let max_value = percentile(&sorted_data, 99.0);
 
     let mut img = GrayImage::new(width, height);
     
@@ -109,7 +116,13 @@ fn process_fits_file(fits_path: &str, output_dir: &str) -> Result<(), Box<dyn st
             if max_value == min_value {
                 0
             } else {
-                ((value as f32 - min_value as f32) / (max_value as f32 - min_value as f32) * 255.0).round() as u8
+                let val_f32 = value as f32;
+                let min_f32 = min_value as f32;
+                let max_f32 = max_value as f32;
+                
+                let normalized = (val_f32 - min_f32) / (max_f32 - min_f32);
+                let clamped = normalized.max(0.0).min(1.0); // Clamp between 0.0 and 1.0
+                (clamped * 255.0).round() as u8
             }
         })
         .collect();
@@ -122,4 +135,13 @@ fn process_fits_file(fits_path: &str, output_dir: &str) -> Result<(), Box<dyn st
     println!("Processed FITS file for Plate ID: {} and Region: {}", plate_id, region);
 
     Ok(())
+}
+
+fn percentile(sorted_data: &[i16], percentile: f32) -> i16 {
+    if sorted_data.is_empty() {
+        return 0;
+    }
+    let idx = (percentile / 100.0 * (sorted_data.len() - 1) as f32).round() as usize;
+    let index = idx.min(sorted_data.len() - 1);
+    sorted_data[index]
 }
