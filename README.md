@@ -1,6 +1,6 @@
 # Preamble
 
-I've made heavy use of AI coding for this. I've tested that it works but do be warned.
+I've made heavy use of AI coding for this. I've tested that it works but do be warned, jank may lie ahead.
 
 This also does require a Linux environment as I save fits to a ram disk at /dev/shm. This prevents writing over 900 gb of fits to my ssd.
 
